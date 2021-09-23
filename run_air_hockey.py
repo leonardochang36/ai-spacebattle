@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
     # Optional arguments
     parser.add_argument("-p1", "--player1", default='player_A', help="Enter Player1 file url without .py extension")
-    parser.add_argument("-p2", "--player2", default='player_BLAZERS', help="Enter Player2 file url without .py extension")
+    parser.add_argument("-p2", "--player2", default='player_B', help="Enter Player2 file url without .py extension")
     parser.add_argument("-vf", "--video_file", default=argparse.SUPPRESS, help="Enter video url to save game, use .avi extension")
     parser.add_argument("-sw", "--show_window", default=True, help="Do you want real-time visual feed?")
 
