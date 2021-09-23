@@ -44,12 +44,6 @@ def main(args):
     state['is_goal_move'] = None
     epsilon = 1
 
-    # initiallize gui core
-    if 'video_file' in args:
-        gui_core = guicore.GUICore(board, args.show_window == 'True', True, args.video_file)
-    else:
-        gui_core = guicore.GUICore(board)
-
     # dinamically import Player classes for both players
     player1_module = importlib.import_module(args.player1)
     player2_module = importlib.import_module(args.player2)
@@ -57,6 +51,21 @@ def main(args):
     # create player instances
     player1 = player1_module.Player(state['paddle1_pos'], 'left')
     player2 = player2_module.Player(state['paddle2_pos'], 'right')
+
+    # Load the player images, including alpha channel
+    # Also rotate them according to their side
+    p1_ship = cv.rotate(cv.imread(player1.my_ship_image, cv.IMREAD_UNCHANGED),
+                        cv.ROTATE_90_COUNTERCLOCKWISE)
+    p2_ship = cv.rotate(cv.imread(player2.my_ship_image, cv.IMREAD_UNCHANGED),
+                        cv.ROTATE_90_CLOCKWISE)
+
+    # initiallize gui core
+    if 'video_file' in args:
+        gui_core = guicore.GUICore(board, p1_ship, p2_ship,
+                                   args.show_window == 'True', True,
+                                   args.video_file)
+    else:
+        gui_core = guicore.GUICore(board, p1_ship, p2_ship)
 
     # create game with given players
     game_core = gamecore.GameCore(player1, player2, board, state, epsilon, gui_core)

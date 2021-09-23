@@ -22,6 +22,7 @@ class Player:
 
         # set your team's name, max. 15 chars
         self.my_display_name = "DREAM TEAM"
+        self.my_ship_image = "assets/Spaceships/Spaceship10-blue-01.png"
 
         # these belong to my solution,
         # you may erase or change them in yours
@@ -58,7 +59,7 @@ class Player:
 
         # find if puck path is inside my interest area
         # roi_radius = current_state['board_shape'][0] * current_state['goal_size'] * 2
-        roi_radius = current_state['board_shape'][1] / 4 + 30 
+        roi_radius = current_state['board_shape'][1] / 4 + 30
         pt_in_roi = None
         for p in path:
             if utils.distance_between_points(p[0], self.my_goal_center) < roi_radius:

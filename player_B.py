@@ -22,6 +22,7 @@ class Player:
 
         # set your team's name, max. 15 chars
         self.my_display_name = "AIR KINGS"
+        self.my_ship_image = "assets/Spaceships/Spaceship10-red-01.png"
 
         # these belong to my solution,
         # you may erase or change them in yours
@@ -56,7 +57,7 @@ class Player:
         y = random.uniform(140, 370)
         self.opponent_goal_center = {'x': 0 if self.my_goal == 'right' else current_state['board_shape'][1],
                                      'y': y}
-        
+
 
         # find if puck path is inside my interest area
         roi_radius = current_state['board_shape'][0] * current_state['goal_size']

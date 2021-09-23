@@ -13,8 +13,11 @@ import numpy as np
 import utils
 
 class GUICore:
-    def __init__(self, board, show_window=True, save_video=False, video_file=None):
+    def __init__(self, board, p1_ship, p2_ship, show_window=True,
+                 save_video=False, video_file=None):
         self.board = board
+        self.p1_ship = p1_ship
+        self.p2_ship = p2_ship
         # if not board:
         #     raise Exception('ERROR loading board')
         self.show_window = show_window
@@ -41,18 +44,43 @@ class GUICore:
             self.out_vid.write(frame)
         return
 
+    def draw_sprite(self, board, sprite, position):
+        """ Overlay an image on top of another one. Using alpha channel
+
+        Based on the examples at:
+        https://stackoverflow.com/questions/14063070/overlay-a-smaller-image-on-a-larger-image-python-opencv
+        """
+        round_position = utils.round_point_as_tuple(position)
+        x_start = round_position[0] - self.p1_ship.shape[0] // 2
+        x_end = round_position[0] + self.p1_ship.shape[0] // 2
+        y_start = round_position[1] - self.p1_ship.shape[1] // 2
+        y_end = round_position[1] + self.p1_ship.shape[1] // 2
+
+        # Get the alpha filters on both images
+        alpha_s = sprite[:, :, 3] / 255.0
+        alpha_l = 1.0 - alpha_s
+
+        # Copy each channel independently
+        for c in range(0, 3):
+            board[y_start:y_end, x_start:x_end, c] = (alpha_s * sprite[:, :, c] + alpha_l * board[y_start:y_end, x_start:x_end, c])
+
 
     def resolve_gui(self, state, p1, p2):
         board_feedback = np.zeros((int(round(self.board.shape[0] * 1.25)),
-                                   self.board.shape[1], self.board.shape[2]), dtype=self.board.dtype)
+                                   self.board.shape[1], self.board.shape[2]),
+                                  dtype=self.board.dtype)
         # visual feedback
         board_feedback[:self.board.shape[0], :self.board.shape[1]] = copy.copy(self.board)
         cv.circle(board_feedback, utils.round_point_as_tuple(state['puck_pos']),
-                  state['puck_radius'], (0, 0, 0), -1)
+                  state['puck_radius'], (200, 255, 50), -1)
+        # Air hockey paddles
         cv.circle(board_feedback, utils.round_point_as_tuple(state['paddle1_pos']),
                   state['paddle_radius'], (255, 0, 0), -1)
         cv.circle(board_feedback, utils.round_point_as_tuple(state['paddle2_pos']),
                   state['paddle_radius'], (0, 0, 255), -1)
+        # Ship sprites
+        self.draw_sprite(board_feedback, self.p1_ship, state['paddle1_pos'])
+        self.draw_sprite(board_feedback, self.p2_ship, state['paddle2_pos'])
 
 
         if state['is_goal_move'] is None:
