@@ -12,7 +12,9 @@ import numpy as np
 
 import utils
 
+
 class GUICore:
+    """ Class in charge of the display of the game """
     def __init__(self, board, p1_ship, p2_ship, show_window=True,
                  save_video=False, video_file=None):
         self.board = board
@@ -28,19 +30,19 @@ class GUICore:
             self.out_vid = cv.VideoWriter(video_file, cv.VideoWriter_fourcc(*'H264'), 50,
                                           (self.board.shape[1], int(round(self.board.shape[0] * 1.25))))
 
-
     def show_current_state(self, frame, sleep=False):
+        """ Display the frame on screen """
         cv.imshow('AIR HOCKEY', frame)
         # key = cv.waitKey()
         key = cv.waitKey(1000 if sleep else 5)
-        if key == 27: # Esc key to stop
+        if key == 27:  # Esc key to stop
             return -1
         return 0
 
-
     def write_current_state(self, frame, sleep=False):
-        c = 60 if sleep else 1
-        for _ in range(c):
+        """ Save a video frame """
+        ticks = 60 if sleep else 1
+        for _ in range(ticks):
             self.out_vid.write(frame)
         return
 
@@ -56,7 +58,7 @@ class GUICore:
         y_start = round_position[1] - self.p1_ship.shape[1] // 2
         y_end = round_position[1] + self.p1_ship.shape[1] // 2
 
-        # Get the alpha filters on both images
+        # Get the alpha filters on both images (large and small)
         alpha_s = sprite[:, :, 3] / 255.0
         alpha_l = 1.0 - alpha_s
 
@@ -64,8 +66,8 @@ class GUICore:
         for c in range(0, 3):
             board[y_start:y_end, x_start:x_end, c] = (alpha_s * sprite[:, :, c] + alpha_l * board[y_start:y_end, x_start:x_end, c])
 
-
     def resolve_gui(self, state, p1, p2):
+        """ Prepare the image to be draw on screen """
         board_feedback = np.zeros((int(round(self.board.shape[0] * 1.25)),
                                    self.board.shape[1], self.board.shape[2]),
                                   dtype=self.board.dtype)
@@ -73,15 +75,16 @@ class GUICore:
         board_feedback[:self.board.shape[0], :self.board.shape[1]] = copy.copy(self.board)
         cv.circle(board_feedback, utils.round_point_as_tuple(state['puck_pos']),
                   state['puck_radius'], (200, 255, 50), -1)
-        # Air hockey ships
+        """
+        # Air hockey paddles
         cv.circle(board_feedback, utils.round_point_as_tuple(state['ship1_pos']),
                   state['ship_radius'], (255, 0, 0), -1)
         cv.circle(board_feedback, utils.round_point_as_tuple(state['ship2_pos']),
                   state['ship_radius'], (0, 0, 255), -1)
+        """
         # Ship sprites
         self.draw_sprite(board_feedback, self.p1_ship, state['ship1_pos'])
         self.draw_sprite(board_feedback, self.p2_ship, state['ship2_pos'])
-
 
         if state['is_goal_move'] is None:
             # write text scores
@@ -93,8 +96,8 @@ class GUICore:
 
             ### write score
             pos_xy = (20, int(round(self.board.shape[0] * 1.20 - text_size[1] * 1.5)))
-            self.draw_text(board_feedback, str(state['goals']['left']), pos_xy, (255, 0, 0),
-                           (255, 255, 255), 2, 3, 'left')
+            self.draw_text(board_feedback, str(state['goals']['left']),
+                           pos_xy, (255, 0, 0), (255, 255, 255), 2, 3, 'left')
 
             ## player 2
             ### write team's name
@@ -119,17 +122,17 @@ class GUICore:
                 return -1
         return 0
 
-
     def release_all(self):
+        """ Clean up resources """
         if self.show_window:
             cv.destroyAllWindows()
         if self.save_video:
             self.out_vid.release()
         return
 
-
-    def draw_text(self, img, text, pos_xy, text_color, bg_color, fontscale, thickness,
-                  alignment='left'):
+    def draw_text(self, img, text, pos_xy, text_color, bg_color, fontscale,
+                  thickness, alignment='left'):
+        """ Show text on the game screen """
         fontface = cv.FONT_HERSHEY_SIMPLEX
         # compute text size in image
         textsize = cv.getTextSize(text, fontface, fontscale, thickness)
@@ -140,10 +143,11 @@ class GUICore:
         elif alignment == 'right':
             textorg = (pos_xy[0] - textsize[0][0], pos_xy[1])
         else:
-            textorg = (int(round(pos_xy[0] - textsize[0][0]/2)), pos_xy[1])
-
+            textorg = (int(round(pos_xy[0] - textsize[0][0] / 2)), pos_xy[1])
 
         # then put the text itself with offset border
-        cv.putText(img, text, textorg, fontface, fontscale, bg_color, int(round(thickness * 3)), cv.LINE_AA)
-        cv.putText(img, text, textorg, fontface, fontscale, text_color, thickness, cv.LINE_AA)
+        cv.putText(img, text, textorg, fontface, fontscale, bg_color,
+                   int(round(thickness * 3)), cv.LINE_AA)
+        cv.putText(img, text, textorg, fontface, fontscale, text_color,
+                   thickness, cv.LINE_AA)
         return textsize[0]

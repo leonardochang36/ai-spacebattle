@@ -96,7 +96,7 @@ class Player:
 
 
 def estimate_path(current_state, after_time):
-    """ Function that function estimates the next moves in a after_time window
+    """ Function that estimates the next moves in a after_time window
 
     Returns:
         list: coordinates and speed of puck for next ticks
