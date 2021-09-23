@@ -21,7 +21,7 @@ import guicore
 
 def main(args):
     # load our air hockey board
-    board = cv.imread('assests/board.png')
+    board = cv.imread('assets/bg5-scaled.png')
 
     # initiallize game state
     state = {}
