@@ -31,19 +31,19 @@ def main(args):
     state['goal_size'] = 0.45
     # Use standard measures
     state['puck_radius'] = int(round(state['board_shape'][0] * 3.25 / 51.25))
-    state['paddle_radius'] = int(round(state['board_shape'][0] * 3.25 / 51.25))
+    state['ship_radius'] = int(round(state['board_shape'][0] * 3.25 / 51.25))
     x_offset = 0.25 if random.uniform(-1, 1) < 0 else 0.75
     state['puck_pos'] = {'x': board.shape[1] * x_offset,
                          'y': random.uniform(0 + state['puck_radius'],
                                              board.shape[0] - state['puck_radius'])}
     state['puck_speed'] = {'x': 0, 'y': 700}
-    state['paddle1_pos'] = {'x': board.shape[0] * state['goal_size']/2+1,
+    state['ship1_pos'] = {'x': board.shape[0] * state['goal_size']/2+1,
                             'y': board.shape[0] / 2}
-    state['paddle2_pos'] = {'x': board.shape[1] - board.shape[0] * state['goal_size'] / 2 - 1,
+    state['ship2_pos'] = {'x': board.shape[1] - board.shape[0] * state['goal_size'] / 2 - 1,
                             'y': board.shape[0] / 2}
-    state['paddle1_speed'] = {'x': 0, 'y': 0}
-    state['paddle2_speed'] = {'x': 0, 'y': 0}
-    state['paddle_max_speed'] = 150
+    state['ship1_speed'] = {'x': 0, 'y': 0}
+    state['ship2_speed'] = {'x': 0, 'y': 0}
+    state['ship_max_speed'] = 150
     state['goals'] = {'left': 0, 'right': 0}
     state['is_goal_move'] = None
     epsilon = 1
@@ -53,8 +53,8 @@ def main(args):
     player2_module = importlib.import_module(args.player2)
 
     # create player instances
-    player1 = player1_module.Player(state['paddle1_pos'], 'left')
-    player2 = player2_module.Player(state['paddle2_pos'], 'right')
+    player1 = player1_module.Player(state['ship1_pos'], 'left')
+    player2 = player2_module.Player(state['ship2_pos'], 'right')
 
     # Load the player images, including alpha channel
     # Also rotate them according to their side

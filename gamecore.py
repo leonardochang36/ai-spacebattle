@@ -66,7 +66,7 @@ class GameCore:
             #####################################################################
             try:
                 t0 = time.time()
-                self.state['paddle1_pos'] = self.make_player_move(state_copy, self.player1)
+                self.state['ship1_pos'] = self.make_player_move(state_copy, self.player1)
                 assert time.time() - t0 < self.max_time, ('TIME VIOLATION by: ' +
                                                           self.player1.my_display_name)
             except Exception as exc:
@@ -79,7 +79,7 @@ class GameCore:
             #####################################################################
             try:
                 t0 = time.time()
-                self.state['paddle2_pos'] = self.make_player_move(state_copy, self.player2)
+                self.state['ship2_pos'] = self.make_player_move(state_copy, self.player2)
                 assert time.time() - t0 < self.max_time, ('TIME VIOLATION by: ' +
                                                             self.player2.my_display_name)
             except Exception as exc:
@@ -92,24 +92,24 @@ class GameCore:
                 'goals': self.goals, 'winner': None}
 
 
-    def check_paddle_valid_move(self, new_pos, previous_pos, state, player):
+    def check_ship_valid_move(self, new_pos, previous_pos, state, player):
         # check if is in move range
-        max_offset = state['paddle_max_speed'] * state['delta_t'] + 0.000001
+        max_offset = state['ship_max_speed'] * state['delta_t'] + 0.000001
         if utils.distance_between_points(new_pos, previous_pos) > max_offset:
-            raise ValueError('RULES VIOLATION: paddle moved faster than speed limit for ' +
+            raise ValueError('RULES VIOLATION: ship moved faster than speed limit for ' +
                              player.my_display_name)
 
         # check if is inside board limits
-        if utils.is_out_of_boundaries_paddle(new_pos, state) is not None:
+        if utils.is_out_of_boundaries_ship(new_pos, state) is not None:
             raise ValueError('RULES VIOLATION: Paddle moved beyond board limits for ' +
                              player.my_display_name)
 
         # check if is not inside goal area
-        if utils.is_inside_goal_area_paddle(new_pos, state) is True:
+        if utils.is_inside_goal_area_ship(new_pos, state) is True:
             raise ValueError('RULES VIOLATION: Paddle moved inside goal area for ' +
                              player.my_display_name)
 
-        # check if paddle is inside player's area
+        # check if ship is inside player's area
         if self.goal_sides['left'] is player and new_pos['x'] > \
              self.board.shape[1]/2 - self.state['puck_radius']:
             raise ValueError('RULES VIOLATION: Paddle moved beyond center line for ' +
@@ -123,27 +123,27 @@ class GameCore:
 
     def make_player_move(self, state, player):
         # get player's move
-        paddle_new_pos = player.next_move(state)
+        ship_new_pos = player.next_move(state)
 
         # validate received move
-        paddle_pos = 'paddle' + ('1' if self.goal_sides['left'] is player else '2') + '_pos'
-        self.check_paddle_valid_move(paddle_new_pos, self.state[paddle_pos], self.state, player)
+        ship_pos = 'ship' + ('1' if self.goal_sides['left'] is player else '2') + '_pos'
+        self.check_ship_valid_move(ship_new_pos, self.state[ship_pos], self.state, player)
 
         # add randomness of self.error rate maximum size and inside the board
-        paddle_new_pos = {k: v + random.uniform(-self.error_rate, self.error_rate)
-                          for k, v in paddle_new_pos.items()}
+        ship_new_pos = {k: v + random.uniform(-self.error_rate, self.error_rate)
+                          for k, v in ship_new_pos.items()}
 
         # rectify overlap if exists
-        paddle_new_pos = utils.rectify_circles_overlap(self.state['puck_pos'],
+        ship_new_pos = utils.rectify_circles_overlap(self.state['puck_pos'],
                                                        self.state['puck_radius'],
-                                                       paddle_new_pos,
-                                                       self.state['paddle_radius'])
+                                                       ship_new_pos,
+                                                       self.state['ship_radius'])
 
         # if random shift caused an out of limits, rectify.
         goal_side = 'left' if self.goal_sides['left'] is player else 'right'
-        paddle_new_pos = utils.rectify_circle_out_of_bounds(paddle_new_pos, goal_side, self.state)
+        ship_new_pos = utils.rectify_circle_out_of_bounds(ship_new_pos, goal_side, self.state)
 
-        return paddle_new_pos
+        return ship_new_pos
 
 
     def set_random_position_at(self, side):
@@ -203,10 +203,10 @@ class GameCore:
                                     'y': utils.vector_l2norm(self.state['puck_speed'])}
         self.in_initial_state = 0
 
-        # set paddles to initial position
-        self.state['paddle1_pos'] = {'x': self.board.shape[0]*self.state['goal_size']/2+1,
+        # set ships to initial position
+        self.state['ship1_pos'] = {'x': self.board.shape[0]*self.state['goal_size']/2+1,
                                      'y': self.board.shape[0]/2}
-        self.state['paddle2_pos'] = {'x': self.board.shape[1] - self.board.shape[0]*self.state['goal_size']/2-1,
+        self.state['ship2_pos'] = {'x': self.board.shape[1] - self.board.shape[0]*self.state['goal_size']/2-1,
                                      'y': self.board.shape[0]/2}
         return
 

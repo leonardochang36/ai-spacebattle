@@ -73,14 +73,14 @@ class GUICore:
         board_feedback[:self.board.shape[0], :self.board.shape[1]] = copy.copy(self.board)
         cv.circle(board_feedback, utils.round_point_as_tuple(state['puck_pos']),
                   state['puck_radius'], (200, 255, 50), -1)
-        # Air hockey paddles
-        cv.circle(board_feedback, utils.round_point_as_tuple(state['paddle1_pos']),
-                  state['paddle_radius'], (255, 0, 0), -1)
-        cv.circle(board_feedback, utils.round_point_as_tuple(state['paddle2_pos']),
-                  state['paddle_radius'], (0, 0, 255), -1)
+        # Air hockey ships
+        cv.circle(board_feedback, utils.round_point_as_tuple(state['ship1_pos']),
+                  state['ship_radius'], (255, 0, 0), -1)
+        cv.circle(board_feedback, utils.round_point_as_tuple(state['ship2_pos']),
+                  state['ship_radius'], (0, 0, 255), -1)
         # Ship sprites
-        self.draw_sprite(board_feedback, self.p1_ship, state['paddle1_pos'])
-        self.draw_sprite(board_feedback, self.p2_ship, state['paddle2_pos'])
+        self.draw_sprite(board_feedback, self.p1_ship, state['ship1_pos'])
+        self.draw_sprite(board_feedback, self.p2_ship, state['ship2_pos'])
 
 
         if state['is_goal_move'] is None:

@@ -61,34 +61,34 @@ def is_out_of_boundaries(state):
     return None
 
 
-def is_out_of_boundaries_paddle(paddle_pos, state):
-    """ Function that detects if a paddle is out of the board limits.
+def is_out_of_boundaries_ship(ship_pos, state):
+    """ Function that detects if a ship is out of the board limits.
 
     Returns:
         None: if is not out of the boundaries
         str: 'horizontal' or 'vertical' if is out of boundaries.
     """
-    if paddle_pos['x'] + state['paddle_radius'] > state['board_shape'][1] \
-       or paddle_pos['x'] - state['paddle_radius'] < 0:
+    if ship_pos['x'] + state['ship_radius'] > state['board_shape'][1] \
+       or ship_pos['x'] - state['ship_radius'] < 0:
         return 'horizontal'
-    if paddle_pos['y'] + state['paddle_radius'] > state['board_shape'][0] \
-       or paddle_pos['y'] - state['paddle_radius'] < 0:
+    if ship_pos['y'] + state['ship_radius'] > state['board_shape'][0] \
+       or ship_pos['y'] - state['ship_radius'] < 0:
         return 'vertical'
     return None
 
 
-def is_inside_goal_area_paddle(paddle_pos, state):
-    """ Function that detects if a paddle is the goal area.
+def is_inside_goal_area_ship(ship_pos, state):
+    """ Function that detects if a ship is the goal area.
 
     Returns:
         bool: eval result
     """
 
     goal_size = state['goal_size'] * state['board_shape'][0] / 2
-    if distance_between_points(paddle_pos, {'x': 0, 'y': state['board_shape'][0]/2}) < goal_size:
+    if distance_between_points(ship_pos, {'x': 0, 'y': state['board_shape'][0]/2}) < goal_size:
         return True
 
-    if distance_between_points(paddle_pos, {'x': state['board_shape'][1],
+    if distance_between_points(ship_pos, {'x': state['board_shape'][1],
                                             'y': state['board_shape'][0]/2}) < goal_size:
         return True
 
@@ -123,7 +123,7 @@ def distance_between_points(p1, p2):
 
 
 def detect_collision(state, pos2, r2):
-    """ Function that detects if the puck collided with a paddle of pos2 and r2 radius
+    """ Function that detects if the puck collided with a ship of pos2 and r2 radius
 
     Returns:
         bool: True if collision occurred, False if not
@@ -184,17 +184,17 @@ def next_speed(state):
     if next_after_boundaries(state):
         return next_after_boundaries(state)
 
-    if detect_collision(state, state['paddle1_pos'], state['paddle_radius']):
+    if detect_collision(state, state['ship1_pos'], state['ship_radius']):
         return next_speed_after_collision(state['puck_pos'], state['puck_speed'],
-                                          state['paddle1_pos'], state['paddle1_speed'])
-    if detect_collision(state, state['paddle2_pos'], state['paddle_radius']):
+                                          state['ship1_pos'], state['ship1_speed'])
+    if detect_collision(state, state['ship2_pos'], state['ship_radius']):
         return next_speed_after_collision(state['puck_pos'], state['puck_speed'],
-                                          state['paddle2_pos'], state['paddle2_speed'])
+                                          state['ship2_pos'], state['ship2_speed'])
     return state['puck_speed']
 
 
-def aim(pos, speed, pos_target, puck_radius, paddle_radius):
-    """ Function that computes where to put the paddle for a target puck position
+def aim(pos, speed, pos_target, puck_radius, ship_radius):
+    """ Function that computes where to put the ship for a target puck position
 
     Args:
         pos: puck position
@@ -202,7 +202,7 @@ def aim(pos, speed, pos_target, puck_radius, paddle_radius):
         pos_target: target position of puck
 
     Returns:
-        dict: paddle position to achieve puck target position
+        dict: ship position to achieve puck target position
     """
 
     # target direction vector, normalized, opposite direction
@@ -218,7 +218,7 @@ def aim(pos, speed, pos_target, puck_radius, paddle_radius):
                            for k, v in intersection_vector.items()}
 
     # length of collision point from pos
-    intersection_vector = {k: v * (puck_radius + paddle_radius)
+    intersection_vector = {k: v * (puck_radius + ship_radius)
                            for k, v in intersection_vector.items()}
 
     #
@@ -246,12 +246,12 @@ def rectify_circles_overlap(center_1, r_1, center_2, r_2):
     Args:
         center_1: position of not-moving circle (puck)
         r_1: radius of circle1
-        center_2: position of moving-circle (paddle)
+        center_2: position of moving-circle (ship)
         r_2: radius of circle1
 
     Returns:
-        New position for circle2 (paddle), resulting in only one intersection point
-        between paddle and puck.
+        New position for circle2 (ship), resulting in only one intersection point
+        between ship and puck.
     """
 
     # if no overlap, skip
@@ -271,12 +271,12 @@ def rectify_circle_out_of_bounds(pos, goal_side, state):
     i.e., out of board or inside goal area
 
     Args:
-        pos: paddle position
-        goal_side: goal side of paddle owner
+        pos: ship position
+        goal_side: goal side of ship owner
         state: state of game
 
     Returns:
-        New position for paddle if it was out of limits
+        New position for ship if it was out of limits
     """
 
     pos = rectify_cicle_out_of_board(pos, goal_side, state)
@@ -286,7 +286,7 @@ def rectify_circle_out_of_bounds(pos, goal_side, state):
 
 def rectify_cicle_out_of_board(pos, goal_side, state):
     board_shape = state['board_shape']
-    r = state['paddle_radius']
+    r = state['ship_radius']
 
     # check for board limits
     if goal_side:
@@ -311,7 +311,7 @@ def rectify_cicle_inside_goal_area(pos, goal_side, state):
     # check for goal area limits
     # if inside area, move it to the closet point out of goal area
     board_shape = state['board_shape']
-    if is_inside_goal_area_paddle(pos, state):
+    if is_inside_goal_area_ship(pos, state):
         center = {'x': 0 if goal_side == 'left' else board_shape[1],
                   'y': board_shape[0]/2}
         r = state['goal_size'] * board_shape[0] / 2 + 2
