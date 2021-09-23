@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ entry point module
 
-This module implements intefaces for using the ai-airhockey platform.
+This module implements intefaces for using the ai-spacebattle platform.
 
 Modify it under your own responsability, for the competition purposes only
 the original version will be used.
@@ -20,7 +20,8 @@ import guicore
 
 
 def main(args):
-    # load our air hockey board
+    """ Program start """
+    # load the background image. It also defines the size of the board
     board = cv.imread('assets/bg5-scaled.png')
 
     # initiallize game state
@@ -28,15 +29,18 @@ def main(args):
     state['delta_t'] = 1/30
     state['board_shape'] = board.shape
     state['goal_size'] = 0.45
-    state['puck_radius'] = int(round(state['board_shape'][0] * 3.25 / 51.25)) # Use standard measures
-    state['paddle_radius'] = int(round(state['board_shape'][0] * 3.25 / 51.25)) # Use standard measures
+    # Use standard measures
+    state['puck_radius'] = int(round(state['board_shape'][0] * 3.25 / 51.25))
+    state['paddle_radius'] = int(round(state['board_shape'][0] * 3.25 / 51.25))
     x_offset = 0.25 if random.uniform(-1, 1) < 0 else 0.75
-    state['puck_pos'] = {'x': board.shape[1] * x_offset, 'y': random.uniform(0 + state['puck_radius'],
-                         board.shape[0] - state['puck_radius'])}
+    state['puck_pos'] = {'x': board.shape[1] * x_offset,
+                         'y': random.uniform(0 + state['puck_radius'],
+                                             board.shape[0] - state['puck_radius'])}
     state['puck_speed'] = {'x': 0, 'y': 700}
-    state['paddle1_pos'] = {'x': board.shape[0]*state['goal_size']/2+1, 'y': board.shape[0]/2}
-    state['paddle2_pos'] = {'x': board.shape[1] - board.shape[0]*state['goal_size']/2-1,
-                            'y': board.shape[0]/2}
+    state['paddle1_pos'] = {'x': board.shape[0] * state['goal_size']/2+1,
+                            'y': board.shape[0] / 2}
+    state['paddle2_pos'] = {'x': board.shape[1] - board.shape[0] * state['goal_size'] / 2 - 1,
+                            'y': board.shape[0] / 2}
     state['paddle1_speed'] = {'x': 0, 'y': 0}
     state['paddle2_speed'] = {'x': 0, 'y': 0}
     state['paddle_max_speed'] = 150
@@ -79,7 +83,8 @@ def main(args):
         if isinstance(v, Exception):
             result[k] = str(type(v).__name__) + ': ' + str(v)
 
-    result['display_names'] = {'left': player1.my_display_name, 'right': player2.my_display_name}
+    result['display_names'] = {'left': player1.my_display_name,
+                               'right': player2.my_display_name}
 
     result = json.dumps(result, skipkeys=True)
     return result
@@ -89,10 +94,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog=sys.argv[0])
 
     # Optional arguments
-    parser.add_argument("-p1", "--player1", default='player_A', help="Enter Player1 file url without .py extension")
-    parser.add_argument("-p2", "--player2", default='player_B', help="Enter Player2 file url without .py extension")
-    parser.add_argument("-vf", "--video_file", default=argparse.SUPPRESS, help="Enter video url to save game, use .avi extension")
-    parser.add_argument("-sw", "--show_window", default=True, help="Do you want real-time visual feed?")
+    parser.add_argument("-p1", "--player1", default='player_A',
+                        help="Enter Player1 file url without .py extension")
+    parser.add_argument("-p2", "--player2", default='player_B',
+                        help="Enter Player2 file url without .py extension")
+    parser.add_argument("-vf", "--video_file", default=argparse.SUPPRESS,
+                        help="Enter video url to save game, use .avi extension")
+    parser.add_argument("-sw", "--show_window", default=True,
+                        help="Do you want real-time visual feed?")
 
     args_ = parser.parse_args()
 
@@ -100,7 +109,8 @@ if __name__ == '__main__':
         sys.exit(main(args_))
     except Exception as exc:
         logging.error(" Oops... something went wrong :(", exc_info=True)
-        status = {'status': 'ERROR', 'info': str(exc), 'goals': None, 'winner': None,
+        status = {'status': 'ERROR', 'info': str(exc), 'goals': None,
+                  'winner': None,
                   'display_names': {'left': 'left', 'right': 'rigth'}}
 
         print(json.dumps(status, skipkeys=True))
