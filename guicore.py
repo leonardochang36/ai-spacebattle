@@ -15,11 +15,14 @@ import utils
 
 class GUICore:
     """ Class in charge of the display of the game """
-    def __init__(self, board, p1_ship, p2_ship, show_window=True,
+    def __init__(self, gui_items, show_window=True,
                  save_video=False, video_file=None):
-        self.board = board
-        self.p1_ship = p1_ship
-        self.p2_ship = p2_ship
+        self.board = gui_items['board']
+        self.sat_image = gui_items['sat_image']
+        self.p1_ship = gui_items['p1_ship']
+        self.p2_ship = gui_items['p2_ship']
+        self.p1_sats = gui_items['p1_sats']
+        self.p2_sats = gui_items['p2_sats']
         # if not board:
         #     raise Exception('ERROR loading board')
         self.show_window = show_window
@@ -53,14 +56,21 @@ class GUICore:
         https://stackoverflow.com/questions/14063070/overlay-a-smaller-image-on-a-larger-image-python-opencv
         """
         round_position = utils.round_point_as_tuple(position)
-        x_start = round_position[0] - self.p1_ship.shape[0] // 2
-        x_end = round_position[0] + self.p1_ship.shape[0] // 2
-        y_start = round_position[1] - self.p1_ship.shape[1] // 2
-        y_end = round_position[1] + self.p1_ship.shape[1] // 2
+        x_start = round_position[0] - sprite.shape[0] // 2
+        x_end = round_position[0] + sprite.shape[0] // 2
+        y_start = round_position[1] - sprite.shape[1] // 2
+        y_end = round_position[1] + sprite.shape[1] // 2
 
         # Get the alpha filters on both images (large and small)
         alpha_s = sprite[:, :, 3] / 255.0
         alpha_l = 1.0 - alpha_s
+
+        # Fix for sprites going beyond the area of the board
+        # TODO: Test that this works
+        if y_end > board.shape[0]:
+            y_end = board.shape[0]
+        if x_end > board.shape[1]:
+            x_end = board.shape[1]
 
         # Copy each channel independently
         for c in range(0, 3):
@@ -82,10 +92,27 @@ class GUICore:
         cv.circle(board_feedback, utils.round_point_as_tuple(state['ship2_pos']),
                   state['ship_radius'], (0, 0, 255), -1)
         """
+        # Satellites
+        for sat in self.p1_sats:
+            self.draw_sprite(board_feedback, self.sat_image, sat.current_pos)
+        for sat in self.p2_sats:
+            self.draw_sprite(board_feedback, self.sat_image, sat.current_pos)
+
+        self.show_scores(state, board_feedback, p1, p2)
+
         # Ship sprites
         self.draw_sprite(board_feedback, self.p1_ship, state['ship1_pos'])
         self.draw_sprite(board_feedback, self.p2_ship, state['ship2_pos'])
 
+        if self.save_video:
+            self.write_current_state(board_feedback, state['is_goal_move'] is not None)
+        if self.show_window:
+            if self.show_current_state(board_feedback, state['is_goal_move'] is not None) < 0:
+                return -1
+        return 0
+
+    def show_scores(self, state, board_feedback, p1, p2):
+        """ Display the scores for the two players """
         if state['is_goal_move'] is None:
             # write text scores
             ## player 1
@@ -114,13 +141,6 @@ class GUICore:
             pos_xy = (int(board_feedback.shape[1]/2), int(round(self.board.shape[0] * 1.20)))
             self.draw_text(board_feedback, 'GOALLL for ' + (p1 if state['is_goal_move'] == 'left' else p2),
                            pos_xy, (0, 165, 255), (255, 255, 255), 1.5, 3, 'center')
-
-        if self.save_video:
-            self.write_current_state(board_feedback, state['is_goal_move'] is not None)
-        if self.show_window:
-            if self.show_current_state(board_feedback, state['is_goal_move'] is not None) < 0:
-                return -1
-        return 0
 
     def release_all(self):
         """ Clean up resources """

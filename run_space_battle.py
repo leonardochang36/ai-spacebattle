@@ -17,16 +17,19 @@ import json
 import cv2 as cv
 import gamecore
 import guicore
-
+import satellite
 
 def main(args):
     """ Program start """
     # load the background image. It also defines the size of the board
     board = cv.imread('assets/bg5-scaled.png')
+    # load image for the satellites
+    sat_image = cv.imread('assets/satellite_s.png', cv.IMREAD_UNCHANGED)
 
     # initiallize game state
     state = {}
     state['delta_t'] = 1/30
+    # Board shape is (width, height, channels)
     state['board_shape'] = board.shape
     state['goal_size'] = 0.45
     # Use standard measures
@@ -37,10 +40,10 @@ def main(args):
                          'y': random.uniform(0 + state['puck_radius'],
                                              board.shape[0] - state['puck_radius'])}
     state['puck_speed'] = {'x': 0, 'y': 700}
-    state['ship1_pos'] = {'x': board.shape[0] * state['goal_size']/2+1,
-                            'y': board.shape[0] / 2}
-    state['ship2_pos'] = {'x': board.shape[1] - board.shape[0] * state['goal_size'] / 2 - 1,
-                            'y': board.shape[0] / 2}
+    state['ship1_pos'] = {'x': board.shape[1] * state['goal_size'] / 2 + 1,
+                          'y': board.shape[0] / 2}
+    state['ship2_pos'] = {'x': board.shape[1] - board.shape[1] * state['goal_size'] / 2 - 1,
+                          'y': board.shape[0] / 2}
     state['ship1_speed'] = {'x': 0, 'y': 0}
     state['ship2_speed'] = {'x': 0, 'y': 0}
     state['ship_max_speed'] = 150
@@ -63,13 +66,27 @@ def main(args):
     p2_ship = cv.rotate(cv.imread(player2.my_ship_image, cv.IMREAD_UNCHANGED),
                         cv.ROTATE_90_CLOCKWISE)
 
+    p1_sats = make_satellites(4, 'left', board, state)
+    p2_sats = make_satellites(4, 'right', board, state)
+
+    gui_items = {'board': board,
+                 'sat_image': sat_image,
+                 'p1_ship': p1_ship,
+                 'p2_ship': p2_ship,
+                 'p1_sats': p1_sats,
+                 'p2_sats': p2_sats,
+                 #'p1_shots': [],
+                 #'p2_shots': [],
+                 }
+
+
     # initiallize gui core
     if 'video_file' in args:
-        gui_core = guicore.GUICore(board, p1_ship, p2_ship,
+        gui_core = guicore.GUICore(gui_items,
                                    args.show_window == 'True', True,
                                    args.video_file)
     else:
-        gui_core = guicore.GUICore(board, p1_ship, p2_ship)
+        gui_core = guicore.GUICore(gui_items)
 
     # create game with given players
     game_core = gamecore.GameCore(player1, player2, board, state, epsilon, gui_core)
@@ -88,6 +105,32 @@ def main(args):
 
     result = json.dumps(result, skipkeys=True)
     return result
+
+
+def make_satellites(num_sats, goal_side, board, state):
+    """ Create the satellite objects for one player
+
+    Return a list of instances of Satellite """
+    # Variables to adjust satellite behaviour
+    min_speed = 2
+    max_speed = 8
+    min_motion = 2
+    max_motion = 6
+    sat_list = []
+    y_distance = board.shape[0] / (num_sats + 1)
+    for i in range(num_sats):
+        # Define initial position
+        if goal_side == 'left':
+            pos_x = board.shape[1] * state['goal_size'] / 2 + 1
+        else:
+            pos_x = board.shape[1] - board.shape[1] * state['goal_size'] / 2 + 1
+        pos_y = y_distance * (i + 1)
+        sat_pos = {'x': pos_x, 'y': pos_y}
+        # Add random variations
+        speed = random.randint(min_speed, max_speed)
+        motion = random.randint(min_motion, max_motion)
+        sat_list.append(satellite.Satellite(sat_pos, goal_side, speed, motion))
+    return sat_list
 
 
 if __name__ == '__main__':
